@@ -37,6 +37,22 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "StateEnum": {
+        "dataType": "refEnum",
+        "enums": [0,1,2,3,4,5],
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "BookCollectionDTO": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"double"},
+            "book": {"ref":"BookDTO"},
+            "available": {"dataType":"boolean","required":true},
+            "state": {"ref":"StateEnum","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "CreateBook": {
         "dataType": "refObject",
         "properties": {
@@ -76,6 +92,35 @@ export function RegisterRoutes(app: Router) {
 
 
     
+        app.get('/bookCollections',
+            ...(fetchMiddlewares<RequestHandler>(BookCollectionController)),
+            ...(fetchMiddlewares<RequestHandler>(BookCollectionController.prototype.getAllBookCollections)),
+
+            async function BookCollectionController_getAllBookCollections(request: ExRequest, response: ExResponse, next: any) {
+            const args: Record<string, TsoaRoute.ParameterSchema> = {
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args, request, response });
+
+                const controller = new BookCollectionController();
+
+              await templateService.apiHandler({
+                methodName: 'getAllBookCollections',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.get('/books',
             ...(fetchMiddlewares<RequestHandler>(BookController)),
             ...(fetchMiddlewares<RequestHandler>(BookController.prototype.getAllBooks)),
