@@ -12,7 +12,7 @@
     "predev": "npm run swagger",
     "prebuild": "npm run swagger",
     "build": "tsc",
-    "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec\"",
+    "dev": "concurrently \"nodemon\" \"nodemon --ignore routes/index.ts -x tsoa spec-and-routes\"",
     "swagger": "tsoa spec",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -17,7 +17,7 @@ export class AuthorController extends Controller {
   public async getAuthorById(@Path() id: number): Promise<AuthorDTO | null> {
     const author = await authorService.getAuthorById(id);
 
-    if(!author){
+    if (!author) {
       const error = new Error('Author not found');
       (error as any).status = 404;
       throw error;
@@ -47,6 +47,11 @@ export class AuthorController extends Controller {
     @Body() requestBody: AuthorDTO
   ): Promise<AuthorDTO | null> {
     const { first_name, last_name } = requestBody;
-    return authorService.updateAuthor(id, first_name, last_name);
+    const response = await authorService.updateAuthor(id, first_name, last_name);
+
+    if (response == null) {
+      this.setStatus(404);
+    }
+    return response;
   }
 }
