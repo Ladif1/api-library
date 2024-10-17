@@ -1,10 +1,11 @@
 import * as express from "express";
 import * as jwt from "jsonwebtoken";
+import { permissionsByRole, Role } from "../services/authentication.service";
 
 export function expressAuthentication(
   request: express.Request,
   securityName: string,
-  scopes?: string[]
+  requiredPermissions?: { canRead?: string[], canWrite?: string[], canDelete?: string[] }
 ): Promise<any> {
   if (securityName === "jwt") {
     const token =
@@ -18,21 +19,41 @@ export function expressAuthentication(
       }
       jwt.verify(
         token,
-        "your_jwt_secret_key",
+        process.env.JWT_SECRET ?? "your_jwt_secret_key",
         function (err: any, decoded: any) {
           if (err) {
             reject(err);
-          } else {
-            if (scopes !== undefined) {
-              // Check if JWT contains all required scopes
-              for (let scope of scopes) {
-                if (!decoded.scopes.includes(scope)) {
-                  reject(new Error("JWT does not contain required scope."));
-                }
+          } const userRole: Role = decoded.role; // Assurez-vous que le rôle est inclus dans le token
+
+          // Vérification des permissions basées sur le rôle
+          const permissions = permissionsByRole[userRole];
+
+          const path = request.path.split("/")[1];
+          console.log("path", path);
+          console.log(permissions.canDelete);
+          switch (request.method) {
+            case "GET":
+              if (!permissions.canRead.includes(path)) {
+                reject(new Error("Unauthorized"));
               }
-            }
-            resolve(decoded);
+              break;
+            case "POST":
+              if (!permissions.canWrite.includes(path)) {
+                reject(new Error("Unauthorized"));
+              }
+              break;
+            case "DELETE":
+              if (!permissions.canDelete.includes(path)) {
+                console.log("mais nan");
+                reject(new Error("Unauthorized"));
+              }
+              break;
+            default:
+              reject(new Error("Method not allowed"));
           }
+
+          resolve(decoded);
+
         }
       );
     });

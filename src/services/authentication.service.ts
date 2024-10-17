@@ -5,7 +5,42 @@ import { notFound } from "../error/NotFoundError";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key"; // Clé secrète pour signer le token
 
+// Droits en fonction du rôle
+export type Role = 'admin' | 'gerant' | 'utilisateur';
+
+export const permissionsByRole: Record<Role, { canRead: string[], canWrite: string[], canDelete: string[] }> = {
+  admin: {
+    canRead: ['authors', 'books', 'book-collections', 'users'],
+    canWrite: ['authors', 'books', 'book-collections', 'users'],
+    canDelete: ['authors', 'books', 'book-collections', 'users'],
+  },
+  gerant: {
+    canRead: ['authors', 'books', 'book-collections', 'users'],
+    canWrite: ['authors', 'books', 'book-collections', 'users'],
+    canDelete: ['book-collections'], // Seulement supprimer dans "bookCollection"
+  },
+  utilisateur: {
+    canRead: ['authors', 'books', 'book-collections', 'users'],
+    canWrite: ['books'], // Peut créer un livre si l'auteur existe
+    canDelete: [], // Aucun droit de suppression
+  },
+};
+
 export class AuthenticationService {
+  private getRole(username: string): string {
+    // Assigner des rôles selon l'username
+    switch (username) {
+      case 'admin':
+        return 'admin';
+      case 'gerant':
+        return 'gerant';
+      case 'utilisateur':
+        return 'utilisateur';
+      default:
+        throw new Error('Invalid username');
+    }
+  }
+
   public async authenticate(
     username: string,
     password: string
@@ -18,14 +53,15 @@ export class AuthenticationService {
     }
 
     // Décoder le mot de passe stocké en base de données
-    const decodedPassword = Buffer.from(user.password, "base64").toString(
-      "utf-8"
-    );
+    const decodedPassword = atob(user.password);
 
     // Vérifie si le mot de passe est correct
     if (password === decodedPassword) {
+      const role = this.getRole(username);
+      const permissions = permissionsByRole[role as Role];
+
       // Si l'utilisateur est authentifié, on génère un JWT
-      const token = jwt.sign({ username: user.username }, JWT_SECRET, {
+      const token = jwt.sign({ username: user.username, role, permissions }, JWT_SECRET, {
         expiresIn: "1h",
       });
       return token;

@@ -25,8 +25,9 @@ export class UserService {
     username: string,
     password: string,
   ): Promise<UserOutputDTO> {
+    const passwordBase64 = btoa(password);
     return UserMapper.toOutputDto(
-      await User.create({ username: username, password: password }),
+      await User.create({ username: username, password: passwordBase64 }),
     );
   }
 
@@ -49,7 +50,7 @@ export class UserService {
     const user = await User.findByPk(id);
     if (user) {
       if (username) user.username = username;
-      if (password) user.password = password;
+      if (password) user.password = btoa(password);
       await user.save();
       return UserMapper.toOutputDto(user);
     } else {
